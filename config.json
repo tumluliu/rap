@@ -1,0 +1,14 @@
+{
+    "testbeds": [
+        {
+            "location": "Munich, Germany",
+            "bbox": {
+                "left": 11.45,
+                "right": 11.70,
+                "top": 48.20,
+                "bottom": 48.07
+            },
+            "stubspacing": 0.01
+        }
+    ]
+}
