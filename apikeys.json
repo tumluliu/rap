@@ -1,0 +1,34 @@
+{
+    "apikeys": [
+        {
+            "provider": "mapbox",
+            "datasource": "osm",
+            "key": "MAPBOX-API-KEYS"
+        },
+        {
+            "provider": "mapzen",
+            "datasource": "osm",
+            "key": "MAPZEN-API-KEYS"
+        },
+        {
+            "provider": "graphhopper",
+            "datasource": "osm",
+            "key": "GRAPHHOPPER-API-KEYS"
+        },
+        {
+            "provider": "google",
+            "datasource": "proprietary",
+            "key": "GMAP-API-KEY"
+        },
+        {
+            "provider": "tomtom",
+            "datasource": "proprietary",
+            "key": "TOMTOM-API-KEY"
+        },
+        {
+            "provider": "here",
+            "datasource": "proprietary",
+            "key": "HERE-API-KEY"
+        }
+    ]
+}
