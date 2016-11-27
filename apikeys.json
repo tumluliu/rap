@@ -1,34 +1,26 @@
 {
-    "apikeys": [
-        {
-            "provider": "mapbox",
-            "datasource": "osm",
-            "key": "MAPBOX-API-KEYS"
-        },
-        {
-            "provider": "mapzen",
-            "datasource": "osm",
-            "key": "MAPZEN-API-KEYS"
-        },
-        {
-            "provider": "graphhopper",
-            "datasource": "osm",
-            "key": "GRAPHHOPPER-API-KEYS"
-        },
-        {
-            "provider": "google",
-            "datasource": "proprietary",
-            "key": "GMAP-API-KEY"
-        },
-        {
-            "provider": "tomtom",
-            "datasource": "proprietary",
-            "key": "TOMTOM-API-KEY"
-        },
-        {
-            "provider": "here",
-            "datasource": "proprietary",
-            "key": "HERE-API-KEY"
-        }
-    ]
+    "mapbox": {
+        "datasource": "osm",
+        "key": "MAPBOX-API-KEY"
+    },
+    "mapzen": {
+        "datasource": "osm",
+        "key": "MAPZEN-API-KEY"
+    },
+    "graphhopper": {
+        "datasource": "osm",
+        "key": "GRAPHHOPPER-API-KEY"
+    },
+    "google": {
+        "datasource": "proprietary",
+        "key": "GOOGLE-API-KEY"
+    },
+    "tomtom": {
+        "datasource": "proprietary",
+        "key": "TOMTOM-API-KEY"
+    },
+    "here": {
+        "datasource": "proprietary",
+        "key": "HERE-API-KEY"
+    }
 }
