@@ -1,4 +1,4 @@
-"""Base Service class"""
+"""Base Routing Service class"""
 
 import base64
 import json
@@ -7,38 +7,37 @@ import os
 from cachecontrol import CacheControl
 import requests
 
-from .. import __version__
-from mapbox import errors
+from . import __version__
 
 
-def Session(access_token=None, env=os.environ):
+def Session(api_key=None, env=os.environ):
     """Returns an HTTP session.
 
-    :param access_token: Mapbox access token string (optional).
+    :param api_key: Mapbox access token string (optional).
     :param env: a dict.
     """
-    access_token = (
-        access_token or
+    api_key = (
+        api_key or
         env.get('MapboxAccessToken') or
         env.get('MAPBOX_ACCESS_TOKEN'))
     session = requests.Session()
-    session.params.update(access_token=access_token)
+    session.params.update(api_key=api_key)
     session.headers.update({
         'User-Agent': 'mapbox-sdk-py/{0} {1}'.format(
             __version__, requests.utils.default_user_agent())})
     return session
 
 
-class Service(object):
-    """Service base class."""
+class RoutingService(object):
+    """Routing service base class."""
 
-    def __init__(self, access_token=None, cache=None):
+    def __init__(self, api_key=None, cache=None):
         """Constructs a Service object.
 
-        :param access_token: Mapbox access token string.
+        :param api_key: Mapbox access token string.
         :param cache: CacheControl cache instance (Dict or FileCache).
         """
-        self.session = Session(access_token)
+        self.session = Session(api_key)
         if cache:
             self.session = CacheControl(self.session, cache=cache)
 
@@ -48,10 +47,10 @@ class Service(object):
 
         Token contains base64 encoded json object with username.
         """
-        token = self.session.params.get('access_token')
+        token = self.session.params.get('api_key')
         if not token:
             raise errors.TokenError(
-                "session does not have a valid access_token param")
+                "session does not have a valid api_key param")
         data = token.split('.')[1]
         # replace url chars and add padding
         # (https://gist.github.com/perrygeo/ee7c65bb1541ff6ac770)
