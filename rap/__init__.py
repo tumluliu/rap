@@ -69,8 +69,8 @@ def __main__():
         router = RoutingServiceFactory(args['PROVIDER'])
         router.find_path(0, 0, 0, 0)
     except docopt.DocoptExit as e:
-        print e.message
+        print(e.message)
     except SchemaError as e:
-        print e.message
+        print(e.message)
         exit(e)
     print(args)
