@@ -1,6 +1,6 @@
 """
 Usage:
-    rap -p PROVIDER -i INPUT_FILE [-o OUTPUT_DIR] [-v | --verbose]
+    rap -p PROVIDER -i INPUT_FILE [-o OUTPUT_DIR] [-x PARAMS] [-v | --verbose]
     rap -h | --help
     rap --version
 
@@ -13,6 +13,8 @@ Options:
     -i INPUT_FILE  Set the input csv file containing all the points (required)
     -o OUTPUT_DIR  Set the directory for saving routing results, create a new
                    directory if not exists (optional) [default: ./output]
+    -x PARAMS      Extra parameters for the router, a plain text file in JSON
+                   format (optional)
     -v --verbose   Show running log in detail
     -h --help      Show this help
     --version      Show version number
@@ -24,6 +26,7 @@ Arguments:
                    fields at least to record the longtitude and latitude
                    coordinates and id
     OUTPUT_DIR     Directory for saving routing results, default to ./output
+    PARAMS         JSON file containing extra parameters for the router
 
 Examples:
     rap -p mapbox
@@ -65,6 +68,11 @@ def validate_arguments(raw_args, conf):
         'OUTPUT_DIR': Use(os.path.isdir,
                           error='{0} is not a valid directory'.format(raw_args[
                               'OUTPUT_DIR'])),
+        'PARAMS':
+        Or(None,
+           Use(os.file.exists,
+               error='Extra parameters file {0} does not exist'.format(
+                   raw_args['PARAMS'])))
     })
     try:
         args = sch.validate(raw_args)
@@ -76,20 +84,42 @@ def validate_arguments(raw_args, conf):
     return args
 
 
-def try_touching(router, source, target, profile):
+def save_route_to(route, filepath):
+    with open(filepath, 'w') as f:
+        json.dump(route, fp)
+
+
+def try_touching(router,
+                 source,
+                 target,
+                 profile='walking',
+                 params=None,
+                 output_dir):
     res = router.find_path(source['x'], source['y'], target['x'], target['y'],
-                           profile, None)
+                           profile, params)
     if res is None:
         return 0
+    save_route_to(res,
+                  os.path.join(output_dir, '{0}_{1}.json'.format(
+                      source['id'], target['id'])))
     return 1
 
 
-def cal_accessibility(router, target, all_pts, profile='walking'):
+def cal_accessibility(router,
+                      target,
+                      all_pts,
+                      profile='walking',
+                      params=None,
+                      output_dir):
     i = all_pts.index(target)
+    # Put all the points except the target into other_pts list
     other_pts = all_pts[:i] + all_pts[(i + 1):]
+    # Calculate how many points can reach the target, and use this value as the
+    # target's accessibility index
     return reduce(
         lambda x, y: x + y,
-        map(lambda p: try_touching(router, p, target, profile), other_pts), 0)
+        map(lambda p: try_touching(router, p, target, profile, params, output_dir),
+            other_pts), 0)
 
 
 def __main__():
@@ -111,9 +141,13 @@ def __main__():
                 'y': float(r['Y']),
                 'id': int(r['id'])
             })
-    points_with_accessibility = list(map(
-        lambda p: cal_accessibility(router, p, points, profile='walking'),
-        points))
+
+    points_with_accessibility = list(
+            map(lambda p: cal_accessibility(
+                    router, p, points, profile='walking',
+                    params, args['OUTPUT_DIR']),
+                points))
+
     with open(
             os.path.join(args['OUTPUT_DIR'],
                          '{0}.csv'.format(args['PROVIDER'])), 'w') as f:
