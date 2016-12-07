@@ -1,4 +1,15 @@
 {
+    "profiles": [
+        "walking",
+        "driving",
+        "cycling",
+        "transit",
+        "train",
+        "flights",
+        "ferry",
+        "unmanned",
+        "multimodal"
+    ],
     "testbeds": [
         {
             "location": "Munich, Germany",
