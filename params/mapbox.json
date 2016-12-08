@@ -1,0 +1,7 @@
+{
+    "alternatives": "false",
+    "geometries": "geojson",
+    "overview": "false",
+    "radiuses": "10;10",
+    "steps": "false"
+}
