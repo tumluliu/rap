@@ -3,9 +3,6 @@
 
 from uritemplate import URITemplate
 from .base import RoutingService
-from . import errors
-import json
-import base64
 
 
 class MapboxRouter(
@@ -57,47 +54,6 @@ class MapboxRouter(
             api_key,
             cache
         )
-
-    @property
-    def username(self):
-        """Get username from access token.
-
-        Token contains base64 encoded json object with username.
-        """
-        if not self.token:
-            raise errors.TokenError(
-                "session does not have a valid api_key param"
-            )
-        data = self.token.split(
-            '.'
-        )[1]
-        # replace url chars and add padding
-        # (https://gist.github.com/perrygeo/ee7c65bb1541ff6ac770)
-        data = data.replace(
-            '-',
-            '+'
-        ).replace(
-            '_',
-            '/'
-        ) + "==="
-        try:
-            return json.loads(
-                base64.
-                b64decode(
-                    data
-                )
-                .
-                decode(
-                    'utf-8'
-                )
-            )['u']
-        except (
-                ValueError,
-                KeyError
-        ):
-            raise errors.TokenError(
-                "access_token does not contain username"
-            )
 
     def find_path(
             self,
