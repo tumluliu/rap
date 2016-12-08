@@ -29,9 +29,9 @@ Arguments:
                    configured in appconf.json file
     PROFILE        Routing profile name indicating what kind of transportation
                    mode should be use, default to walking
-    INPUT_FILE     Points information file in csv format. Must have X, Y and id
-                   fields at least to record the longtitude and latitude
-                   coordinates and id
+    INPUT_FILE     Points information file in csv format. Must have `x`, `y`,
+                   and `id` fields at least to record the longtitude and
+                   latitude coordinates and id
     OUTPUT_DIR     Directory for saving routing results, default to ./output
     PARAMS         JSON file containing extra parameters for the router
 
@@ -147,8 +147,8 @@ def __main__():
         pf = csv.DictReader(f)
         for r in pf:
             points.append({
-                'x': float(r['X']),
-                'y': float(r['Y']),
+                'x': float(r['x']),
+                'y': float(r['y']),
                 'id': int(r['id'])
             })
 
