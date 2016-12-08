@@ -1,4 +1,14 @@
 {
+    "routers": [
+        "mapbox",
+        "graphhopper",
+        "mapzen",
+        "google",
+        "here",
+        "tomtom",
+        "mmrp",
+        "openrouteservice"
+    ],
     "profiles": [
         "walking",
         "driving",
