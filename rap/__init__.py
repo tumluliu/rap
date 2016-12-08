@@ -101,9 +101,9 @@ def save_route_to(route, filepath):
         json.dump(route, fp)
 
 
-def try_touching(router, source, target, profile, params=None, output_dir):
+def try_touching(router, source, target, params=None, output_dir):
     res = router.find_path(source['x'], source['y'], target['x'], target['y'],
-                           profile, params)
+                           params)
     if res is None:
         return 0
     # The found routes will be stored in the form that looks like
@@ -118,7 +118,6 @@ def try_touching(router, source, target, profile, params=None, output_dir):
 def cal_accessibility(router,
                       target,
                       all_pts,
-                      profile,
                       params=None,
                       output_dir):
     i = all_pts.index(target)
@@ -128,7 +127,7 @@ def cal_accessibility(router,
     # target's accessibility index
     return reduce(
         lambda x, y: x + y,
-        map(lambda p: try_touching(router, p, target, profile, params, output_dir),
+        map(lambda p: try_touching(router, p, target, params, output_dir),
             other_pts), 0)
 
 
@@ -141,7 +140,7 @@ def __main__():
         appconf = json.load(f)
     args = validate_arguments(args, appconf)
     print(args)
-    router = RoutingServiceFactory(args['ROUTER'])
+    router = RoutingServiceFactory(args['ROUTER'], args['PROFILE'])
     points = []
     with open(args['INPUT_FILE'], 'r') as f:
         pf = csv.DictReader(f)
