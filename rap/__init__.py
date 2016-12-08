@@ -1,15 +1,20 @@
 """
 Usage:
-    rap -p PROVIDER -i INPUT_FILE [-o OUTPUT_DIR] [-x PARAMS] [-v | --verbose]
+    rap -r ROUTER -p PROFILE -i INPUT_FILE [-o OUTPUT_DIR] [-x PARAMS] [-v | --verbose]
     rap -h | --help
     rap --version
 
 Fetch optimal routes between every two locations in the INPUT_FILE csv file
-with an online routing service of PROVIDER, write the results in OUTPUT_DIR.
-The test area information are configured in appconf.json file.
+with an online routing service of ROUTER, write the results in OUTPUT_DIR.
+The extra parameters for different routing services can be provided in the
+JSON file specified by the PARAMS argument.  The test area information are
+configured in appconf.json file.
 
 Options:
-    -p PROVIDER    Set routing service provider (required)
+    -r ROUTER      Set routing service provider (required)
+    -p PROFILE     Set the preferred routing profile indicating the
+                   transportation mode to use for routing (required)
+                   [default: walking]
     -i INPUT_FILE  Set the input csv file containing all the points (required)
     -o OUTPUT_DIR  Set the directory for saving routing results, create a new
                    directory if not exists (optional) [default: ./output]
@@ -20,8 +25,10 @@ Options:
     --version      Show version number
 
 Arguments:
-    PROVIDER       Routing service API provider name. The valid values are
-                   configured in routerconf.json file
+    ROUTER         Routing service API provider name. The valid values are
+                   configured in appconf.json file
+    PROFILE        Routing profile name indicating what kind of transportation
+                   mode should be use, default to walking
     INPUT_FILE     Points information file in csv format. Must have X, Y and id
                    fields at least to record the longtitude and latitude
                    coordinates and id
@@ -29,8 +36,8 @@ Arguments:
     PARAMS         JSON file containing extra parameters for the router
 
 Examples:
-    rap -p mapbox
-    rap -p graphhopper -o ./gh_results -v
+    rap -r mapbox -p walking -i ./input/munich.csv
+    rap -r graphhopper -p driving -i ./input/heidelberg.csv -o ./gh_results -v
 """
 import json
 import os
@@ -57,11 +64,16 @@ __all__ = [
 
 def validate_arguments(raw_args, conf):
     sch = Schema({
-        'PROVIDER': And(str,
-                        Use(str.lower),
-                        lambda p: p in conf.keys(),
-                        error='PROVIDER should be one of {0}'.format(', '.join(
-                            list(conf.keys())))),
+        'ROUTER': And(str,
+                      Use(str.lower),
+                      lambda r: r in conf['routers'],
+                      error='ROUTER should be one of {0}'.format(', '.join(
+                          conf['routers']))),
+        'PROFILE': And(str,
+                       Use(str.lower),
+                       lambda p: p in conf['profiles'],
+                       error='PROFILE should be one of {0}'.format(', '.join(
+                           conf['profiles']))),
         'INPUT_FILE': Use(os.file.exists,
                           error='Input data file {0} does not exist'.format(
                               raw_args['INPUT_FILE'])),
@@ -89,16 +101,14 @@ def save_route_to(route, filepath):
         json.dump(route, fp)
 
 
-def try_touching(router,
-                 source,
-                 target,
-                 profile='walking',
-                 params=None,
-                 output_dir):
+def try_touching(router, source, target, profile, params=None, output_dir):
     res = router.find_path(source['x'], source['y'], target['x'], target['y'],
                            profile, params)
     if res is None:
         return 0
+    # The found routes will be stored in the form that looks like
+    # /OUTPUT_DIR_ROOT/ROUTER/PROFILE/SOURCE_TARGET.json
+    os.makedirs(output_dir, exist_ok=True)
     save_route_to(res,
                   os.path.join(output_dir, '{0}_{1}.json'.format(
                       source['id'], target['id'])))
@@ -108,7 +118,7 @@ def try_touching(router,
 def cal_accessibility(router,
                       target,
                       all_pts,
-                      profile='walking',
+                      profile,
                       params=None,
                       output_dir):
     i = all_pts.index(target)
@@ -127,11 +137,11 @@ def __main__():
     Entrypoint of command line interface.
     """
     args = docopt(__doc__, version=__version__)
-    with open('routerconf.json', 'r') as f:
-        routerconf = json.load(f)
-    args = validate_arguments(args, routerconf)
+    with open('appconf.json', 'r') as f:
+        appconf = json.load(f)
+    args = validate_arguments(args, appconf)
     print(args)
-    router = RoutingServiceFactory(args['PROVIDER'])
+    router = RoutingServiceFactory(args['ROUTER'])
     points = []
     with open(args['INPUT_FILE'], 'r') as f:
         pf = csv.DictReader(f)
@@ -142,15 +152,22 @@ def __main__():
                 'id': int(r['id'])
             })
 
+    if args['PARAMS'] is None:
+        params = None
+    else:
+        with open(args['PARAMS']) as f:
+            params = json.load(f)
+
     points_with_accessibility = list(
-            map(lambda p: cal_accessibility(
-                    router, p, points, profile='walking',
-                    params, args['OUTPUT_DIR']),
-                points))
+        map(lambda p: cal_accessibility(
+                router, p, points, 
+                args['PROFILE'], params, 
+                os.path.join(args['OUTPUT_DIR'], args['ROUTER'], args['PROFILE'])),
+            points))
 
     with open(
-            os.path.join(args['OUTPUT_DIR'],
-                         '{0}.csv'.format(args['PROVIDER'])), 'w') as f:
+            os.path.join(args['OUTPUT_DIR'], '{0}.csv'.format(args['ROUTER'])),
+            'w') as f:
         fieldnames = points_with_accessibility[0].keys()
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
