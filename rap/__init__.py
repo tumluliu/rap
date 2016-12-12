@@ -4,6 +4,6 @@ __author__ = 'LIU Lu'
 __contact__ = 'nudtlliu@gmail.com'
 __license__ = 'MIT'
 __all__ = [
-    'base', 'servicefactory', 'mb', 'graphhopper', 'mapzen', 'google', 'here',
-    'tomtom'
+    'base', 'servicefactory', 'mapbox', 'graphhopper', 'mapzen', 'google',
+    'here', 'tomtom'
 ]

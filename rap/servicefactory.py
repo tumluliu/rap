@@ -2,7 +2,7 @@
 """
 
 import json
-from .mb import MapboxRouter
+from .mapbox import MapboxRouter
 from .graphhopper import GraphHopperRouter
 
 # from . import mapzen
