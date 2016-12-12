@@ -1,8 +1,8 @@
-import unittest
+from unittest import TestCase, main
 from rap.mb import MapboxRouter
 
 
-class MapboxRouterTestCase(unittest.TestCase):
+class MapboxRouterTestCase(TestCase):
 
     def setUp(self):
         with open('../apikeys.json') as kf:
@@ -20,4 +20,4 @@ class MapboxRouterTestCase(unittest.TestCase):
         self.assertEqual(res.status_code, 200)
 
 if __name__ == "__main__":
-    unittest.main()
+    main()
