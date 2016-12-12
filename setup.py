@@ -28,4 +28,9 @@ setup(
     author=author,
     author_email=contact,
     license=license,
-    packages=['rap'])
+    packages=['rap'],
+    entry_points={
+        'console_scripts': [
+            'rap = rap.cli:main'
+        ]
+    })
