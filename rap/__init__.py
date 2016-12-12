@@ -7,3 +7,5 @@ __all__ = [
     'base', 'servicefactory', 'mapbox', 'graphhopper', 'mapzen', 'google',
     'here', 'tomtom'
 ]
+
+from .servicefactory import RoutingServiceFactory
