@@ -1,7 +1,7 @@
 import re
 
 from codecs import open
-from distutils.core import setup
+from setuptools import setup
 
 version = ''
 license = ''
@@ -31,6 +31,6 @@ setup(
     packages=['rap'],
     entry_points={
         'console_scripts': [
-            'rap = rap.cli:main'
+            'rapy=rap.cli:main'
         ]
     })
