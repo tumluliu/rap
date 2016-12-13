@@ -31,6 +31,6 @@ setup(
     packages=['rap'],
     entry_points={
         'console_scripts': [
-            'rapy=rap.cli:main'
+            'rapy=rap.rapy:main'
         ]
     })
