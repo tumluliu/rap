@@ -1,8 +1,8 @@
 """
 Usage:
-    rap -r ROUTER -p PROFILE -i INPUT_FILE [-o OUTPUT_DIR] [-x PARAMS] [-v | --verbose]
-    rap -h | --help
-    rap --version
+    rapy -r ROUTER -p PROFILE -i INPUT_FILE [-o OUTPUT_DIR] [-x PARAMS] [-v | --verbose]
+    rapy -h | --help
+    rapy --version
 
 Fetch optimal routes between every two locations in the INPUT_FILE csv file
 with an online routing service of ROUTER, write the results in OUTPUT_DIR.
@@ -36,8 +36,8 @@ Arguments:
     PARAMS         JSON file containing extra parameters for the router
 
 Examples:
-    rap -r mapbox -p walking -i ./input/munich.csv
-    rap -r graphhopper -p driving -i ./input/heidelberg.csv -o ./gh_results -v
+    rapy -r mapbox -p walking -i ./input/munich.csv
+    rapy -r graphhopper -p driving -i ./input/heidelberg.csv -o ./gh_results -v
 """
 import json
 import os
