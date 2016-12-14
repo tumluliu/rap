@@ -64,14 +64,14 @@ def validate_arguments(raw_args, conf):
                        lambda p: p in conf['profiles'],
                        error='PROFILE should be one of {0}'.format(', '.join(
                            conf['profiles']))),
-        'INPUT_FILE': Use(os.file.exists,
+        'INPUT_FILE': Use(os.path.isfile,
                           error='Input data file {0} does not exist'.format(
                               raw_args['INPUT_FILE'])),
         'OUTPUT_DIR': Use(os.path.isdir,
                           error='{0} is not a valid directory'.format(raw_args[
                               'OUTPUT_DIR'])),
         'PARAMS': Or(None,
-                     Use(os.file.exists,
+                     Use(os.path.isfile,
                          error='Can not find extra parameters file {0}'.format(
                              raw_args['PARAMS'])))
     })
