@@ -6,13 +6,10 @@ from . import __version__
 from . import errors
 
 
-def Session(api_key=None):
+def Session():
     """Returns an HTTP session.
-
-    :param api_key: Mapbox access token string (optional).
     """
     session = requests.Session()
-    session.params.update(api_key=api_key)
     session.headers.update({
         'User-Agent': 'rap/{0} {1}'.format(__version__,
                                            requests.utils.default_user_agent())
@@ -25,12 +22,13 @@ class RoutingService(object):
     """
 
     def __init__(self, api_key=None, cache=None):
-        """Constructs a Service object.
+        """Constructs a routing service object.
 
-        :param api_key: API key for a routing service
+        :param api_key: API key for a routing service if needed
         :param cache: CacheControl cache instance (Dict or FileCache).
         """
-        self.session = Session(api_key)
+        self.api_key = api_key
+        self.session = Session()
         if cache:
             self.session = CacheControl(self.session, cache=cache)
 
