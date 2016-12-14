@@ -55,7 +55,7 @@ class MapboxRouter(RoutingService):
         :param float target_lng: longitude value of the ending position
         :param float target_lat: latitude value of the ending position
         :param Dict params: the other query parameters for the mapbox router
-        :return: None for no path found; a JSON string for the found path info
+        :return: None for no path found; a JSON object for the found path info
         """
         self.coordinates = "{0},{1};{2},{3}".format(source_lng, source_lat,
                                                     target_lng, target_lat)
@@ -81,4 +81,4 @@ class MapboxRouter(RoutingService):
                 return None
 
         self.handle_http_error(resp)
-        return resp.text
+        return json.loads(resp.text)
