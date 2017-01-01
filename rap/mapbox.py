@@ -5,6 +5,7 @@ import logging
 import json
 from uritemplate import URITemplate
 from .base import RoutingService
+from time import sleep
 
 logger = logging.getLogger(__name__)
 
@@ -29,6 +30,9 @@ class MapboxRouter(RoutingService):
         "walking": "walking",
         "cycling": "cycling"
     }
+    # For free Mapbox API pricing plan, the API request is limited to
+    # 600 req/minute. So the interval is set to 60 / 600 = 0.1 second
+    request_interval = 0.1
 
     def __init__(self, profile, api_key, cache=None):
         logger.debug(
@@ -69,6 +73,8 @@ class MapboxRouter(RoutingService):
         logger.info("Sending request to Mapbox Directions API server")
         logger.debug("Query string parameters are: {0}".format(
             str(self.params)))
+        if self.request_interval > 0:
+            sleep(self.request_interval)
         resp = self.session.get(uri, params=self.params)
         logger.debug("Get response {0}".format(resp.text))
         if resp.status_code != 200:
