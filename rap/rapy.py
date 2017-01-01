@@ -131,7 +131,7 @@ def try_touching(router, source, target, output_dir, params=None):
 
 
 def cal_accessibility(router, target, all_pts, output_dir, params=None):
-    logger.debug("Calculating the accessibilities of point {0}...".format(
+    print("Calculating the accessibility index of point {0}...".format(
         str(target)))
     i = all_pts.index(target)
     # Put all the points except the target into other_pts list
@@ -145,6 +145,7 @@ def cal_accessibility(router, target, all_pts, output_dir, params=None):
             map(lambda p: try_touching(router, p, target, output_dir, params),
                 other_pts), 0)
     })
+    print("Accessibility index: {0}".format(p_accessibility['accessibility']))
     return p_accessibility
 
 
