@@ -1,21 +1,25 @@
 """
 Usage:
-    rapy -r ROUTER -p PROFILE -i INPUT_FILE [-o OUTPUT_DIR] [-x PARAMS] [-v | --verbose]
+    rapy -r ROUTER -p PROFILE -f LANDMARK -t POINTS [-o OUTPUT_DIR] [-x PARAMS] [-v | --verbose]
     rapy -h | --help
     rapy --version
 
-Fetch optimal routes between every two locations in the INPUT_FILE csv file
-with an online routing service of ROUTER, write the results in OUTPUT_DIR.
-The extra parameters for different routing services can be provided in the
-JSON file specified by the PARAMS argument.  The test area information are
-configured in appconf.json file.
+Fetch optimal routes from the location described in the geojson format file
+LANDMARK to all the locations recorded in the POINTS csv file with an
+online routing service of ROUTER, write the results in OUTPUT_DIR. The extra
+parameters for different routing services can be provided in the json file
+specified by the PARAMS argument. The test area information are configured
+in `appconf.json` file.
 
 Options:
     -r ROUTER      Set routing service provider (required)
     -p PROFILE     Set the preferred routing profile indicating the
                    transportation mode to use for routing (required)
                    [default: walking]
-    -i INPUT_FILE  Set the input csv file containing all the points (required)
+    -f LANDMARK    Set the source location of the path searching job in a
+                   geojson format file, which is usually a landmark within
+                   the test area (required)
+    -t POINTS      Set the input csv file containing all the points (required)
     -o OUTPUT_DIR  Set the directory for saving routing results, create a new
                    directory if not exists (optional) [default: ./output]
     -x PARAMS      Extra parameters for the router, a plain text file in JSON
@@ -29,20 +33,24 @@ Arguments:
                    configured in appconf.json file
     PROFILE        Routing profile name indicating what kind of transportation
                    mode should be use, default to walking
-    INPUT_FILE     Points information file in csv format. Must have `x`, `y`,
+    LANDMARK       Point information file in geojson format. Must be a valid
+                   GeoJSON Point `Feature`. It will be used as the
+    POINTS         Points information file in csv format. Must have `x`, `y`,
                    and `id` fields at least to record the longtitude and
                    latitude coordinates and id
+                   source/origin/starting location of the probing job.
     OUTPUT_DIR     Directory for saving routing results, default to ./output
     PARAMS         JSON file containing extra parameters for the router
 
 Examples:
-    rapy -r mapbox -p walking -i ./input/munich.csv
-    rapy -r graphhopper -p driving -i ./input/heidelberg.csv -o ./gh_results -v
+    rapy -r mapbox -p walking -f ./input/muenchen-hbf.json -t ./input/munich.csv
+    rapy -r graphhopper -p driving -f ./input/heidelberg-hbf.json -t ./input/heidelberg.csv -o ./gh_results -v
 """
 import json
+import geojson
 import os
 import csv
-from functools import reduce
+import datetime
 import logging.config
 import logging
 from docopt import docopt, DocoptExit
@@ -82,12 +90,16 @@ def validate_arguments(raw_args, conf):
                   lambda p: str.lower(p) in conf['profiles'],
                   error="PROFILE should be one of {0}".format(', '.join(conf[
                       'profiles']))),
-        '-i': And(lambda i: os.path.isfile(i),
-                  error="File {0} does not exist".format(raw_args['-i'])),
+        '-f':
+        And(lambda f: os.path.isfile(f),
+            error="LANDMARK file {0} does not exist".format(raw_args['-f'])),
+        '-t': And(
+            lambda t: os.path.isfile(t),
+            error="POINTS file {0} does not exist".format(raw_args['-t'])),
         Optional(
-            '-o', default='./output'):
-        And(lambda o: os.path.isdir(o),
-            error="{0} is not a valid directory".format(raw_args['-o'])),
+            '-o', default='./output'): And(
+                lambda o: os.path.isdir(o),
+                error="{0} is not a valid directory".format(raw_args['-o'])),
         Optional('-x'): Or(
             None,
             lambda x: os.path.isfile(x),
@@ -122,7 +134,7 @@ def try_touching(router, source, target, output_dir, params=None):
     if res is None:
         return 0
     # The found routes will be stored in a directory like
-    # /OUTPUT_DIR_ROOT/ROUTER/PROFILE/SOURCE_TARGET.json
+    # /OUTPUT_DIR_ROOT/ROUTER/PROFILE/YYYY-MM-DD/SOURCE_TARGET.json
     os.makedirs(output_dir, exist_ok=True)
     save_route_to(res,
                   os.path.join(output_dir, '{0}_{1}.json'.format(
@@ -130,23 +142,24 @@ def try_touching(router, source, target, output_dir, params=None):
     return 1
 
 
-def cal_accessibility(router, target, all_pts, output_dir, params=None):
-    print("Calculating the accessibility index of point {0}...".format(
-        str(target)))
-    i = all_pts.index(target)
-    # Put all the points except the target into other_pts list
-    other_pts = all_pts[:i] + all_pts[(i + 1):]
-    # Calculate how many points can reach the target, and use this value as the
-    # target's accessibility index
-    p_accessibility = {k: v for k, v in target.items()}
-    p_accessibility.update({
-        'accessibility': reduce(
-            lambda x, y: x + y,
-            map(lambda p: try_touching(router, p, target, output_dir, params),
-                other_pts), 0)
-    })
-    print("Accessibility index: {0}".format(p_accessibility['accessibility']))
-    return p_accessibility
+def cal_accessibility(router, source, all_pts, output_dir, params=None):
+    print("Calculating the accessibilities from the landmark location {0}...".
+          format(str(source['geometry']['coordinates'])))
+    s = {
+        'id': -1,
+        'x': source['geometry']['coordinates'][0],
+        'y': source['geometry']['coordinates'][1]
+    }
+    pt_acc_list = []
+    for p in all_pts:
+        pt_acc_list.append({
+            'id': p['id'],
+            'x': p['x'],
+            'y': p['y'],
+            'acc': try_touching(router, s, p, output_dir, params)
+            })
+
+    return pt_acc_list
 
 
 def main():
@@ -171,20 +184,25 @@ def main():
     router = RoutingServiceFactory(args['-r'], args['-p'])
     logger.debug("Router {0} instance has been created".format(
         router.__class__.__name__))
-    points = []
+    stub_pts = []
     logger.info("Open input data file with stub points")
-    with open(args['-i'], 'r') as f:
+    with open(args['-t'], 'r') as f:
         logger.debug("Data file {0} has been opened for reading".format(args[
-            '-i']))
+            '-t']))
         pf = csv.DictReader(f)
         for r in pf:
             logger.debug("Current row in the points info file: {0}".format(
                 str(r)))
-            points.append({
+            stub_pts.append({
                 'x': float(r['x']),
                 'y': float(r['y']),
                 'id': int(r['id'])
             })
+
+    landmark = {}
+    logger.info("Open landmark geojson file.")
+    with open(args['-f'], 'r') as f:
+        landmark = geojson.load(f)
 
     logger.info("Load extra parameter file for the current router")
     if args['-x'] is None:
@@ -193,14 +211,12 @@ def main():
         with open(args['-x']) as f:
             params = json.load(f)
 
-    logger.info("Calculate accessibilities for all the stub points")
-    points_with_accessibility = list(
-        map(lambda p: cal_accessibility(
-                router, p, points,
-                os.path.join(
-                    args['-o'], args['-r'], args['-p']),
-                params),
-            points))
+    logger.info(
+        "Calculate accessibilities for all the stub points from the landmark")
+    points_with_accessibility = cal_accessibility(
+        router, landmark, stub_pts,
+        os.path.join(args['-o'], args['-r'], args['-p'],
+                     datetime.date.today().isoformat()), params)
     logger.debug("And we get the points with accessibilities: {0}".format(
         str(points_with_accessibility)))
 
