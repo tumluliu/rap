@@ -2,6 +2,6 @@
     "alternatives": "false",
     "geometries": "geojson",
     "overview": "false",
-    "radiuses": "30;30",
+    "radiuses": "100;40",
     "steps": "false"
 }
