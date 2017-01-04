@@ -1,0 +1,12 @@
+{
+    "type": "Feature",
+    "geometry": {
+        "type": "Point",
+        "coordinates": [11.5577663, 48.14045840000001]
+    },
+    "properties": {
+        "long_name": "München Central Station",
+        "short_name": "München Central Station",
+        "address": "München Central Station, Bayerstraße 10A, 80335 München, Germany"
+    }
+}
