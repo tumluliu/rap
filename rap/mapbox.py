@@ -3,11 +3,11 @@
 
 import logging
 import json
+from time import sleep
 from uritemplate import URITemplate
 from .base import RoutingService
-from time import sleep
 
-logger = logging.getLogger(__name__)
+LOGGER = logging.getLogger(__name__)
 
 
 class MapboxRouter(RoutingService):
@@ -35,15 +35,17 @@ class MapboxRouter(RoutingService):
     request_interval = 0.1
 
     def __init__(self, profile, api_key, cache=None):
-        logger.debug(
-            "MapboxRouter __init__ with {0}, {1} and {2} arguments passed in".
-            format(profile, api_key, cache))
+        LOGGER.debug(
+            "MapboxRouter __init__ with %s, %s and %s arguments passed in",
+            profile, api_key, cache)
         if profile not in self.profile_dict.keys():
             # The profile passed in is not supported by Mapbox routing service
             return None
         self.profile = self.profile_dict[profile]
-        logger.debug("The input profile {0} has been converted to {1}".format(
-            profile, self.profile))
+        self.coordinates = ""
+        self.params = {}
+        LOGGER.debug("The input profile %s has been converted to %s",
+                     profile, self.profile)
         super(MapboxRouter, self).__init__(api_key, cache)
 
     def find_path(self,
@@ -70,20 +72,19 @@ class MapboxRouter(RoutingService):
             'profile': self.profile,
             'coordinates': self.coordinates
         })
-        logger.info("Sending request to Mapbox Directions API server")
-        logger.debug("Query string parameters are: {0}".format(
-            str(self.params)))
+        LOGGER.info("Sending request to Mapbox Directions API server")
+        LOGGER.debug("Query string parameters are: %s", str(self.params))
         if self.request_interval > 0:
             sleep(self.request_interval)
         resp = self.session.get(uri, params=self.params)
-        logger.debug("Get response {0}".format(resp.text))
+        LOGGER.debug("Get response %s", resp.text)
         if resp.status_code != 200:
-            logger.error("Error occurs with code {0}".format(resp.status_code))
+            LOGGER.error("Error occurs with code %s", resp.status_code)
             return None
         else:
             mapbox_status_code = json.loads(resp.text)['code']
             if str.lower(mapbox_status_code) != 'ok':
-                logger.info("No path found")
+                LOGGER.info("No path found")
                 return None
 
         self.handle_http_error(resp)
