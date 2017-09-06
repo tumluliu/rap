@@ -30,15 +30,12 @@ class MapboxRouter(RoutingService):
         "walking": "walking",
         "cycling": "cycling"
     }
-    # For free Mapbox API pricing plan, the API request is limited to
-    # 600 req/minute. So the interval is set to 60 / 600 = 0.1 second
-    request_interval = 0.1
 
-    def __init__(self, profile, api_key, cache=None):
+    def __init__(self, profile, api_key, cache=None, rate_limit=-1):
         LOGGER.debug(
             "MapboxRouter __init__ with %s, %s and %s arguments passed in",
             profile, api_key, cache)
-        if profile not in self.profile_dict.keys():
+        if profile not in self.profile_dict:
             # The profile passed in is not supported by Mapbox routing service
             return None
         self.profile = self.profile_dict[profile]
@@ -46,13 +43,9 @@ class MapboxRouter(RoutingService):
         self.params = {}
         LOGGER.debug("The input profile %s has been converted to %s",
                      profile, self.profile)
-        super(MapboxRouter, self).__init__(api_key, cache)
+        super(MapboxRouter, self).__init__(api_key, cache, rate_limit)
 
-    def find_path(self,
-                  source_lng,
-                  source_lat,
-                  target_lng,
-                  target_lat,
+    def find_path(self, source_lng, source_lat, target_lng, target_lat,
                   params=None):
         """ Find the optimal path with Mapbox Directions HTTP API
 
@@ -74,8 +67,8 @@ class MapboxRouter(RoutingService):
         })
         LOGGER.info("Sending request to Mapbox Directions API server")
         LOGGER.debug("Query string parameters are: %s", str(self.params))
-        if self.request_interval > 0:
-            sleep(self.request_interval)
+        if self.rate_limit > 0:
+            sleep(1 / self.rate_limit)
         resp = self.session.get(uri, params=self.params)
         LOGGER.debug("Get response %s", resp.text)
         if resp.status_code != 200:
