@@ -21,7 +21,7 @@ class RoutingService(object):
     """Routing service base class.
     """
 
-    def __init__(self, api_key=None, cache=None):
+    def __init__(self, api_key=None, cache=None, daily_quota=-1, rate_limit=-1):
         """Constructs a routing service object.
 
         :param api_key: API key for a routing service if needed
@@ -29,6 +29,8 @@ class RoutingService(object):
         """
         self.api_key = api_key
         self.session = Session()
+        self.daily_quota = daily_quota
+        self.rate_limit = rate_limit
         if cache:
             self.session = CacheControl(self.session, cache=cache)
 
@@ -36,6 +38,8 @@ class RoutingService(object):
                           response,
                           custom_messages=None,
                           raise_for_status=False):
+        """ Error handler
+        """
         if not custom_messages:
             custom_messages = {}
         if response.status_code in custom_messages.keys():
