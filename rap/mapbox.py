@@ -31,7 +31,7 @@ class MapboxRouter(RoutingService):
         "cycling": "cycling"
     }
 
-    def __init__(self, profile, api_key, cache=None, rate_limit=-1):
+    def __init__(self, profile, api_key, rate_limit=-1, cache=None):
         LOGGER.debug(
             "MapboxRouter __init__ with %s, %s and %s arguments passed in",
             profile, api_key, cache)
