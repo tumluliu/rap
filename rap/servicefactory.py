@@ -21,11 +21,16 @@ def RoutingServiceFactory(service_name, profile):
     # ATTENTION!! A pile of ugly things are coming...
     if service_name == 'mapbox':
         LOGGER.info("Create mapbox router")
-        return MapboxRouter(profile, service_provider_conf['mapbox']['key'])
+        return MapboxRouter(profile,
+                            service_provider_conf['mapbox']['key'],
+                            service_provider_conf['mapbox']['rate_limit'])
     elif service_name == 'openrouteservice':
         LOGGER.info("Create openrouteservice router")
         return OpenRouteServiceRouter(profile,
-                                      service_provider_conf['openrouteservice']['key'])
+                                      service_provider_conf['openrouteservice']['key'],
+                                      service_provider_conf['openrouteservice']['rate_limit'])
     elif service_name == 'google':
         LOGGER.info("Create google maps router")
-        return GoogleMapsRouter(profile, service_provider_conf['google']['key'])
+        return GoogleMapsRouter(profile,
+                                service_provider_conf['google']['key'],
+                                service_provider_conf['google']['rate_limit'])
