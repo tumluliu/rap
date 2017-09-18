@@ -1,5 +1,5 @@
 __title__ = 'rap'
-__version__ = '0.2.0'
+__version__ = '0.2.1'
 __author__ = 'LIU Lu'
 __contact__ = 'nudtlliu@gmail.com'
 __license__ = 'MIT'
