@@ -75,10 +75,13 @@ class MapboxRouter(RoutingService):
             LOGGER.error("Error occurs with code %s", resp.status_code)
             return None
         else:
-            mapbox_status_code = json.loads(resp.text)['code']
-            if str.lower(mapbox_status_code) != 'ok':
-                LOGGER.info("No path found")
-                return None
+            try:
+                mapbox_status_code = json.loads(resp.text)['code']
+                if str.lower(mapbox_status_code) != 'ok':
+                    LOGGER.info("No path found")
+            except ValueError:
+                LOGGER.info("No information from Mapbox found in the response")
+            return None
 
         self.handle_http_error(resp)
         return json.loads(resp.text)

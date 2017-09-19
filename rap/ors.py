@@ -87,9 +87,13 @@ class OpenRouteServiceRouter(RoutingService):
         LOGGER.debug("Get response %s", resp.text)
         if resp.status_code != 200:
             LOGGER.error("Error occurs with code %s", resp.status_code)
-            error_info = json.loads(resp.text)
-            LOGGER.info("ORS error code: %s", error_info["code"])
-            LOGGER.info("ORS error message: %s", error_info["message"])
+            try:
+                error_info = json.loads(resp.text)
+                LOGGER.info("ORS error code: %s", error_info["code"])
+                LOGGER.info("ORS error message: %s", error_info["message"])
+            except ValueError:
+                LOGGER.info(
+                    "No ORS backend error message found in the response")
             return None
 
         self.handle_http_error(resp)
